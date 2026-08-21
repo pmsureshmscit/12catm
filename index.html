@@ -1210,9 +1210,9 @@
         <div class="question-card glass-card">
           <span class="q-label">Q${currentIndex + 1} / ${questions.length}</span>
           ${showChapterTag ? `<span class="q-chapter-tag">${q.chapter}</span>` : ""}
-          <p class="q-text"><b>${q.question}</b></p>
+          <p class="q-text"><b>${escapeHtml(q.question)}</b></p>
           ${q.options.map(opt => `
-            <div class="option ${answers[currentIndex] === opt ? 'selected' : ''}" onclick="selectOption('${opt.replace(/'/g, "\\'")}')">${opt}</div>
+            <div class="option ${answers[currentIndex] === opt ? 'selected' : ''}" onclick="selectOption('${opt.replace(/\\/g, "\\\\").replace(/'/g, "\\'")}')">${escapeHtml(opt)}</div>
           `).join("")}
         </div>
       `;
@@ -1234,6 +1234,15 @@
         btn.onclick = () => { currentIndex = i; renderQuestion(); };
         nav.appendChild(btn);
       });
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
     }
 
     function selectOption(opt) {
@@ -1302,12 +1311,12 @@
           <div class="question-card glass-card">
             <span class="q-label">Q${i + 1}</span>
             ${q.chapter ? `<span class="q-chapter-tag">${q.chapter}</span>` : ""}
-            <p class="q-text">${q.question}</p>
+            <p class="q-text">${escapeHtml(q.question)}</p>
             ${q.options.map(opt => `
               <div class="option
                 ${opt === correct ? 'correct' : ''}
                 ${opt === chosen && chosen !== correct ? 'wrong' : ''}">
-                ${opt}
+                ${escapeHtml(opt)}
               </div>
             `).join("")}
           </div>
