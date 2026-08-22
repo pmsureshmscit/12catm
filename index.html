@@ -893,6 +893,10 @@
     const WEAK_KEY = "computer_application_12_weak_questions_v1";
 
 
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbydjsNypJvg1q276bVEx7Vahzpf_JK7W2t2vHxJYqV75ESymWiq8ITnZT1iXkhGjEoxIA/exec";
+    const SUBJECT_NAME = "கணினி பயன்பாடு (Computer Applications)";
+    const MEDIUM_NAME = "Tamil";
+
     let studentName = "";
     let schoolName = "";
     let studentClass = "";
@@ -1236,6 +1240,37 @@
       });
     }
 
+    function sendResultToSheet(score, pct) {
+      const now = new Date();
+      const answeredCount = Object.keys(answers).length;
+      const wrongCount = Math.max(answeredCount - score, 0);
+
+      const payload = {
+        date: now.toLocaleDateString('en-IN'),
+        time: now.toLocaleTimeString('en-IN'),
+        studentName: studentName,
+        school: schoolName,
+        class: studentClass,
+        registerNumber: registerNumber,
+        subject: SUBJECT_NAME,
+        medium: MEDIUM_NAME,
+        testType: testType,
+        testLabel: currentChapter,
+        totalQuestions: questions.length,
+        keyedQuestions: answeredCount,
+        correct: score,
+        wrong: wrongCount,
+        percentage: pct
+      };
+
+      // text/plain avoids a CORS preflight against the Apps Script web app
+      fetch(GAS_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload)
+      }).catch(err => console.warn("Result logging failed:", err));
+    }
+
     function escapeHtml(str) {
       return String(str)
         .replace(/&/g, "&amp;")
@@ -1343,6 +1378,8 @@
         gaugeFg.style.strokeDashoffset = GAUGE_CIRC * (1 - pct / 100);
       });
       animateCountUp(gaugeNum, pct);
+
+      sendResultToSheet(score, pct);
 
       if (pct >= 50) launchConfetti();
     }
